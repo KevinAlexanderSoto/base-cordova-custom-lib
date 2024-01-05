@@ -1,0 +1,28 @@
+<?xml version='1.0' encoding='utf-8'?>
+<plugin id="com-kalex-plugings-helloWorld" version="1.0.0"
+    xmlns="http://apache.org/cordova/ns/plugins/1.0"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <name>CordovaHelloWorld</name>
+    <js-module name="CordovaHelloWorld" src="www/CordovaHelloWorld.js">
+        <clobbers target="cordova.plugins.CordovaHelloWorld" />
+    </js-module>
+    <platform name="android">
+        <config-file parent="/*" target="res/xml/config.xml">
+            <feature name="CordovaHelloWorld">
+                <param name="android-package"
+                    value="com.kalex.plugings.helloWorld.CordovaHelloWorld" />
+            </feature>
+        </config-file>
+        <config-file parent="/*" target="AndroidManifest.xml" />
+        <source-file src="src/android/CordovaHelloWorld.java"
+            target-dir="src/com-kalex-plugings-helloWorld/CordovaHelloWorld" />
+    </platform>
+    <platform name="ios">
+        <config-file parent="/*" target="config.xml">
+            <feature name="CordovaHelloWorld">
+                <param name="ios-package" value="CordovaHelloWorld" />
+            </feature>
+        </config-file>
+        <source-file src="src/ios/CordovaHelloWorld.swift" />
+    </platform>
+</plugin>

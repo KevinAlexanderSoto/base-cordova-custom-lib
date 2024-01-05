@@ -1,0 +1,19 @@
+{
+  "name": "com-kalex-plugings-helloWorld",
+  "version": "1.0.0",
+  "description": "this is a test plugin",
+  "cordova": {
+    "id": "com-kalex-plugings-helloWorld",
+    "platforms": [
+      "android",
+      "ios"
+    ]
+  },
+  "keywords": [
+    "ecosystem:cordova",
+    "cordova-android",
+    "cordova-ios"
+  ],
+  "author": "Kevin Soto",
+  "license": "ISC"
+}
