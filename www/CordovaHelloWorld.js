@@ -8,6 +8,6 @@ exports.enable = function (success, error) {
   exec(success, error, "CordovaHelloWorld", "enable");
 };
 
-exports.disable = function (arg0, success, error) {
+exports.disable = function (success, error) {
   exec(success, error, "CordovaHelloWorld", "disable");
 };

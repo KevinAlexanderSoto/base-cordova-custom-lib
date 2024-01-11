@@ -18,7 +18,7 @@ class CordovaHelloWorld: CDVPlugin {
     }
     
     override func pluginInitialize ( ){
-        
+        self.privacyViewController = CordovaHelloWorld.createSecureViewController()
         NotificationCenter.default.addObserver(self, selector: #selector(self.handleDidBecomeActiveNotification),
                                                name: NSNotification.Name.UIApplicationDidBecomeActive, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(self.handleWillResignActiveNotification),
@@ -36,7 +36,7 @@ class CordovaHelloWorld: CDVPlugin {
         )
         
         DispatchQueue.main.async {
-            self.webView?.disableScreenshots()
+            self.viewController?.view.enableScreenshots()
             self.commandDelegate!.send(
                 self.pluginResult,
                 callbackId: command.callbackId
@@ -53,7 +53,7 @@ class CordovaHelloWorld: CDVPlugin {
         )
         
         DispatchQueue.main.async {
-            self.webView?.enableScreenshots()
+            self.viewController?.view.disableScreenshots()
             self.commandDelegate!.send(
                 self.pluginResult,
                 callbackId: command.callbackId
