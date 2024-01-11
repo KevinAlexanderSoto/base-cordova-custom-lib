@@ -85,7 +85,7 @@ class CordovaHelloWorld: CDVPlugin {
     private static func createSecureViewController( ) -> UIViewController{
         let privacyViewController = UIViewController()
         privacyViewController.view.backgroundColor = UIColor.gray
-        privacyViewController.modalPresentationStyle = UIModalPresentationStyle.overFullScreen
+        privacyViewController.modalPresentationStyle = UIModalPresentationStyle.fullScreen
         return privacyViewController
     }
     
