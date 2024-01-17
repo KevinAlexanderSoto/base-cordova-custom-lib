@@ -6,38 +6,45 @@ import WebKit
 
 @objc(CordovaHelloWorld)
 class CordovaHelloWorld: CDVPlugin {
-    private var privacyViewController: UIViewController
-    private var isEnabled = true
+    private var privacyViewController: UIViewController!
+    var isEnabled = true
     private var secureTextFieldIsAdded = false
     private var pluginResult = CDVPluginResult(
         status: CDVCommandStatus_ERROR
     )
-    override init() {
-        self.privacyViewController = CordovaHelloWorld.createSecureViewController()
-        
-        super.init()
-    }
     
     override func pluginInitialize ( ){
-        self.privacyViewController = CordovaHelloWorld.createSecureViewController()
+        privacyViewController = CordovaHelloWorld.createSecureViewController()
+        
+        //self.webView.translatesAutoresizingMaskIntoConstraints = false
+        
+        self.isEnabled = true
         NotificationCenter.default.addObserver(self, selector: #selector(self.handleDidBecomeActiveNotification),
                                                name: NSNotification.Name.UIApplicationDidBecomeActive, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(self.handleWillResignActiveNotification),
                                                name: NSNotification.Name.UIApplicationWillResignActive, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(self.handleDidChangeStatusBarOrientationNotification),
                                                name: NSNotification.Name.UIApplicationDidChangeStatusBarOrientation, object: nil)
+        
         super.pluginInitialize()
+    }
+    
+    override func dispose() {
+        NotificationCenter.default.removeObserver(self)
+        super.dispose()
     }
     
     @objc public func enable(_ command: CDVInvokedUrlCommand) {
         self.isEnabled = true
         self.pluginResult = CDVPluginResult(
             status: CDVCommandStatus_OK,
-            messageAs: "ScreenShot enable, can take screenshot"
+            messageAs: "ScreenShot enable, you could take screenshot"
         )
         
         DispatchQueue.main.async {
-            self.viewController?.view.enableScreenshots()
+            //self.webView.enableScreenshots()
+            self.viewController.view.enableScreenshots()
+            
             self.commandDelegate!.send(
                 self.pluginResult,
                 callbackId: command.callbackId
@@ -48,41 +55,50 @@ class CordovaHelloWorld: CDVPlugin {
     
     @objc public func disable(_ command: CDVInvokedUrlCommand) {
         self.isEnabled = false
+        self.secureTextFieldIsAdded = false
         self.pluginResult = CDVPluginResult(
             status: CDVCommandStatus_OK,
             messageAs: "ScreenShot disable, can not take screenshot"
         )
         
         DispatchQueue.main.async {
-            self.viewController?.view.disableScreenshots(self.secureTextFieldIsAdded)
+            
+            //self.webView.disableScreenshots()
+            self.viewController.view.disableScreenshots()
+            
             self.commandDelegate!.send(
                 self.pluginResult,
                 callbackId: command.callbackId
             )
-            self.secureTextFieldIsAdded = true
+            
         }
     }
     
     @objc private func handleDidBecomeActiveNotification ( ){
-        DispatchQueue.main.async {
-            self.privacyViewController.dismiss(animated: false, completion: nil)
-        }
+        self.privacyViewController.dismiss(animated: false, completion: {
+            if ( !self.isEnabled ){
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.009) {
+                    self.viewController.view.disableScreenshots()
+                }
+            }
+        })
     }
     
+    
     @objc private func handleWillResignActiveNotification ( ){
-        if( !isEnabled ){
-            DispatchQueue.main.async {
-                self.viewController?.present(self.privacyViewController, animated: false, completion: nil)
-            }
-        }
         
+        DispatchQueue.main.async {
+            self.viewController?.present(self.privacyViewController, animated: false, completion: nil)
+        }
     }
     
     @objc private func handleDidChangeStatusBarOrientationNotification ( ){
+        
         self.viewController?.view.frame = CGRect(x: 0.0, y: 0.0, width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)
+        
     }
     
-    private static func createSecureViewController( ) -> UIViewController{
+    @objc private static func createSecureViewController( ) -> UIViewController{
         let privacyViewController = UIViewController()
         privacyViewController.view.backgroundColor = UIColor.gray
         privacyViewController.modalPresentationStyle = UIModalPresentationStyle.fullScreen
@@ -91,40 +107,41 @@ class CordovaHelloWorld: CDVPlugin {
     
 }
 
+
 public extension UIView {
     // Cannot be tested in simulator
-    func disableScreenshots(_ secureTextFieldIsAdded : Bool) {
-        if( secureTextFieldIsAdded ) {
-            addSecureTextEntryToTextField(to: true)
-        } else {
-            addSecureText()
-        }
-        
+    @objc func disableScreenshots() {
+        addSecureText()
     }
     
-    func addSecureText() {
-       
-            let field = UITextField()
-            field.isSecureTextEntry = true
-            field.translatesAutoresizingMaskIntoConstraints = false
-            self.addSubview(field)
-            field.centerYAnchor.constraint(equalTo: self.topAnchor).isActive = true
-            field.centerXAnchor.constraint(equalTo: self.trailingAnchor).isActive = true
-            self.layer.superlayer?.addSublayer(field.layer)
-            // Must be `last` for iOS 17
+    
+    @objc private func addSecureText() {
+        
+        let field = UITextField()
+        field.isSecureTextEntry = true
+        field.translatesAutoresizingMaskIntoConstraints = false
+        self.addSubview(field)
+        field.centerYAnchor.constraint(equalTo: self.topAnchor).isActive = true
+        field.centerXAnchor.constraint(equalTo: self.trailingAnchor).isActive = true
+        self.layer.superlayer?.addSublayer(field.layer)
+        
+        // Must be `last` for iOS 17
+        if #available(iOS 17.0, *) {
             field.layer.sublayers?.last?.addSublayer(self.layer)
-        
+        }
     }
     
-    private func addSecureTextEntryToTextField( to isSecure : Bool) {
-        for view in self.subviews {
-            if let textField = view as? UITextField {
-                textField.isSecureTextEntry = isSecure
+    @objc private func addSecureTextEntryToTextField( to isSecure : Bool) {
+        DispatchQueue.main.async {
+            for view in self.subviews {
+                if let textField = view as? UITextField {
+                    textField.isSecureTextEntry = isSecure
+                }
             }
         }
     }
     
-    func enableScreenshots() {
+    @objc func enableScreenshots() {
         addSecureTextEntryToTextField(to: false)
     }
 }
